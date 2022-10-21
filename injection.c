@@ -190,11 +190,17 @@ void __stdcall Shellcode(BYTE* ptr) {
 			if (!pThunkRef) {
 				pThunkRef = pFuncRef;
 			}
-			for (; *pThunkRef; ++pThunkRef, ++pFuncRef) {
-				PIMAGE_IMPORT_BY_NAME pImport = (IMAGE_IMPORT_BY_NAME*)(ptr + (*pThunkRef));
-				*pFuncRef = _GetProcAddress(hDLL, pImport->Name);
-			}
-			++pImportDescr;
+				for (; *pThunkRef; ++pThunkRef, ++pFuncRef) {
+
+					if (IMAGE_SNAP_BY_ORDINAL(*pThunkRef)) {
+						*pFuncRef = GetProcAddress_F(hDLL, (char*)(*pThunkRef & 0xFFFF));
+					}
+					else {
+						PIMAGE_IMPORT_BY_NAME pImport = (IMAGE_IMPORT_BY_NAME*)(ptr + (*pThunkRef));
+						*pFuncRef = GetProcAddress_F(hDLL, pImport->Name);
+					}
+				}
+				++pImportDescr;
 		}
 	}
 	/*Start dll through process_attach*/
